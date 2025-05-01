@@ -1,0 +1,30 @@
+# Note that this software is configured via environment variables
+# which you will most likely have to customize
+
+[Unit]
+Description=Prometheus exporter for bitcoind
+Documentation=https://github.com/Primexz/bitcoind-exporter
+
+# https://www.freedesktop.org/wiki/Software/systemd/NetworkTarget/
+After=bitcoind.service
+Requires=bitcoind.service
+
+[Service]
+ExecStart=/usr/bin/bitcoind-exporter
+Environment=RPC_ADDRESS=http://127.0.0.1:8332 # this works on mainnet
+Environment=RPC_COOKIEFILE=/mnt/data/.bitcoin/.cookie
+Environment=METRIC_PORT=4100
+Environment=ZMQ_ADDRESS=127.0.0.1:28333
+
+Type=simple
+DynamicUser=true
+ProtectSystem=full
+NoNewPrivileges=true
+PrivateDevices=true
+MemoryDenyWriteExecute=true
+
+# Restrict ABIs to help ensure MemoryDenyWriteExecute is enforced
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
