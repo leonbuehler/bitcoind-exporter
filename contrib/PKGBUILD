@@ -1,0 +1,39 @@
+
+pkgname='bitcoind-exporter'
+pkgver=0.1.0
+_pkgver="${pkgver//_/-}"
+pkgrel=1
+pkgdesc='A prometheus exporter for the bitcoin daemon.'
+arch=('i686' 'x86_64' 'aarch64')
+url='https://github.com/Primexz/bitcoind-exporter'
+license=('GPL-3.0')
+depends=('glibc')
+makedepends=('go')
+provides=('bitcoind-exporter')
+conflicts=()
+source=('git+https://github.com/leonbuehler/${pkgname}.git')
+sha256sums=('SKIP')
+
+prepare() {
+	cd "$pkgname"
+	mkdir -p build/
+}
+
+build() {
+  # Use suggested GOFLAGS for Arch Linux.
+  # https://wiki.archlinux.org/title/Go_package_guidelines
+  cd "$pkgname"
+  export CGO_CPPFLAGS="${CPPFLAGS}"
+  export CGO_CFLAGS="${CFLAGS}"
+  export CGO_CXXFLAGS="${CXXFLAGS}"
+  export CGO_LDFLAGS="${LDFLAGS}"
+  export GOFLAGS="-buildmode=pie -trimpath -ldflags=-linkmode=external -mod=readonly -modcacherw"
+  go build -o build
+}
+
+package() {
+  cd "$pkgname"
+  install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm755 build/$pkgname "$pkgdir/usr/bin/$pkgname"
+  install -Dm755 contrib/init/bitcoind-exporter.service "$pkgdir/usr/lib/systemdd/system/prometheus-$pkgname.service"
+}
